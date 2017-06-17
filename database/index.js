@@ -10,9 +10,11 @@ db.once('open', function() {
 var repoSchema = mongoose.Schema({
   name: String,
   html_url: String,
-  forks_count: Number
+  forks_count: Number,
+  login: String
 });
 
 var Repo = mongoose.model('Repo', repoSchema);
+// Repo.collection.drop();
 
 module.exports = Repo;

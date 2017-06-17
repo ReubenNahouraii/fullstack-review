@@ -27,9 +27,10 @@ app.post('/repos/import', function (req, res) {
       console.log(error);
       res.status(500).end();
     } else {
-      let parsedData = JSON.parse(body) || [];
-      parsedData.forEach(({name, html_url, forks_url}) => {
-        new Repo({name, html_url, forks_url}).save((err, repo) => {
+      let parsedData = JSON.parse(body);
+      parsedData = Array.isArray(parsedData) ? parsedData : [];
+      parsedData.forEach(({name, html_url, forks_count, owner: {login}}) => {
+        new Repo({name, html_url, forks_count, login}).save((err, repo) => {
           if(err) {
             console.log(err); //need to error handle better than this
           }
@@ -40,13 +41,20 @@ app.post('/repos/import', function (req, res) {
   });
 });
 
-app.get('/repos', function (req, res) {
-  console.log('we are in the repos');
 
-  Repo.find(function (err, repo) {
-    if (err) return console.error(err);
+app.get('/repos', function (req, res) {
+  Repo.find().
+  limit(25).
+  sort({ forks_count: -1 }).
+  exec()
+    .then(repo => {
+    console.log(repo);
     res.status(200).end(JSON.stringify(repo));
-  });
+
+  })
+    .catch(err => {
+      console.error(err);
+    });
 });
 
 var port = 1128;
